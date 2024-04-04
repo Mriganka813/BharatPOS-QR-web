@@ -1,0 +1,19 @@
+.home-main {
+    height: 100dvh;
+    font-family: "Roboto", sans-serif;
+    font-weight: 900;
+    font-size: 3rem;
+    padding: 50px;
+
+    .gradient-text {
+        background: linear-gradient(to right, #19013e, #8a2be2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-align: center;
+    }
+
+    @media screen and (max-width: 500px) {
+        font-size: 9vw;
+    }
+}
