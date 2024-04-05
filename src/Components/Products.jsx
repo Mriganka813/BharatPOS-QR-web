@@ -1,16 +1,13 @@
-// Import necessary components and icons
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/product.scss';
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 import { MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight } from 'react-icons/md';
 import { FaCircleArrowRight } from "react-icons/fa6";
 
 const Products = () => {
-
     const baseURL = "https://bharatpos-web-test.onrender.com"
-
     const { id } = useParams();
     const [products, setProducts] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -19,20 +16,20 @@ const Products = () => {
     const [error, setError] = useState(null);
     const [cart, setCart] = useState([]);
     const [quantities, setQuantities] = useState({});
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
                 const response = await axios.get(`${baseURL}/api/v1/consumer/sellerProduct/${id}?page=${currentPage}`);
-                console.log(`${baseURL}/api/v1/consumer/sellerProduct/${id}?page=${currentPage}`)
                 setProducts(response.data.data);
                 setTotalPages(response.data.total_pages);
                 setError(null);
 
                 const initialQuantities = {};
                 response.data.data.forEach(product => {
-                    initialQuantities[product._id] = 1;
+                    initialQuantities[product._id] = 1; // Using product ID as unique cart item ID
                 });
                 setQuantities(initialQuantities);
             } catch (error) {
@@ -58,46 +55,62 @@ const Products = () => {
     };
 
     const addToCart = (product) => {
-        const quantity = quantities[product._id] || 1;
-        const itemDetails = {
-            price: product.sellingPrice,
-            quantity: quantity,
-            product: product,
-            saleCGST: product.saleCGST,
-            saleSGST: product.saleSGST,
-            saleIGST: product.saleIGST,
-            baseSellingPrice: product.baseSellingPrice,
-            discountAmt: product.discountAmt,
-            originalbaseSellingPrice: product.originalbaseSellingPrice
-        };
-        setCart([...cart, itemDetails]);
-        console.log(cart);
+        const itemId = product._id; // Using product ID as unique cart item ID
+        const itemIndex = cart.findIndex(item => item.id === itemId);
+        if (itemIndex !== -1) {
+            // If item already exists in the cart, just update its quantity
+            const updatedCart = [...cart];
+            updatedCart[itemIndex].quantity++;
+            setCart(updatedCart);
+        } else {
+            // If item doesn't exist, add it to the cart
+            const itemDetails = {
+                id: itemId,
+                price: product.sellingPrice,
+                quantity: 1, // Default quantity is 1 when adding to cart
+                product: product,
+                saleCGST: product.saleCGST,
+                saleSGST: product.saleSGST,
+                saleIGST: product.saleIGST,
+                baseSellingPrice: product.baseSellingPrice,
+                discountAmt: product.discountAmt,
+                originalbaseSellingPrice: product.originalbaseSellingPrice
+            };
+            setCart([...cart, itemDetails]);
+        }
     };
 
-    const incrementQuantity = (productId) => {
-        setQuantities({ ...quantities, [productId]: (quantities[productId] || 0) + 1 });
+    const incrementQuantity = (itemId) => {
+        const updatedCart = [...cart];
+        const itemIndex = updatedCart.findIndex(item => item.id === itemId);
+        if (itemIndex !== -1) {
+            updatedCart[itemIndex].quantity++;
+            setCart(updatedCart);
+        }
     };
 
-    const decrementQuantity = (productId) => {
-        if (quantities[productId] > 0) {
-            const updatedQuantity = quantities[productId] - 1;
-            setQuantities({ ...quantities, [productId]: updatedQuantity });
-            if (updatedQuantity === 0) {
-                // Remove the item from the cart
-                setCart(cart.filter(item => item.product._id !== productId));
+    const decrementQuantity = (itemId) => {
+        const updatedCart = [...cart];
+        const itemIndex = updatedCart.findIndex(item => item.id === itemId);
+        if (itemIndex !== -1) {
+            updatedCart[itemIndex].quantity--;
+            if (updatedCart[itemIndex].quantity <= 0) {
+                // If quantity becomes zero or negative, remove the item from the cart
+                updatedCart.splice(itemIndex, 1);
             }
+            setCart(updatedCart);
         }
     };
 
     const proceedToCheckout = () => {
         console.log(cart);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        navigate('/checkout')
     };
 
     return (
-        <div className="product-container" style={{ marginBottom: cart.length > 0 ? '70px' : '0px' }}>
-            <h1>
-                {products.length > 0 ? products[0].sellerName : "Products"}
-            </h1>
+        <div className="product-container" style={{ marginBottom: cart.length > 0 ? '60px' : '0px' }}>
+            <h1>Our Menu</h1>
             {loading ? (
                 <div className="loader-main">
                     <div className="spinner"></div>
@@ -114,10 +127,10 @@ const Products = () => {
                                     <p>₹{product.sellingPrice}</p>
                                 </div>
                                 <div className="prod-image center" style={{ backgroundColor: '#E0E1E4', backgroundImage: `url(${product.image})` }}>
-                                    {cart.some(item => item.product._id === product._id) ? (
+                                    {cart.some(item => item.id === product._id) ? (
                                         <div className="add-to-cart center quantity-control">
                                             <p className="quantity-btn center" onClick={() => decrementQuantity(product._id)}>-</p>
-                                            <span>{quantities[product._id] || 1}</span>
+                                            <span>{cart.find(item => item.id === product._id).quantity || 1}</span>
                                             <p className="quantity-btn center" onClick={() => incrementQuantity(product._id)}>+</p>
                                         </div>
                                     ) : (
