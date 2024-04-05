@@ -17,8 +17,6 @@ const Checkout = () => {
         }
     }, []);
 
-    console.log(cart);
-
     const increaseQuantity = (index) => {
         const updatedCart = [...cart];
         updatedCart[index].quantity++;
@@ -30,14 +28,19 @@ const Checkout = () => {
         const updatedCart = [...cart];
         if (updatedCart[index].quantity > 1) {
             updatedCart[index].quantity--;
-            setCart(updatedCart);
-            localStorage.setItem('cart', JSON.stringify(updatedCart));
         } else {
             // Remove the item from the cart if quantity is 0
             updatedCart.splice(index, 1);
-            setCart(updatedCart);
-            localStorage.setItem('cart', JSON.stringify(updatedCart));
         }
+        setCart(updatedCart);
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+    };
+
+    // Function to calculate the total price of items in the cart
+    const calculateTotal = () => {
+        return cart.reduce((total, item) => {
+            return total + (item.price * item.quantity);
+        }, 0);
     };
 
     return (
@@ -58,21 +61,19 @@ const Checkout = () => {
                                 <button onClick={() => increaseQuantity(index)}>+</button>
                             </div>
                             <div className="total-item-price">
-                                <p>₹
-                                    {
-                                        item.price * item.quantity
-                                    }
-                                </p>
+                                <p>₹{item.price * item.quantity}</p>
                             </div>
                         </div>
                     </div>
                 ))}
+
+                <div className="cart-total center">
+                    <p>Total: ₹{calculateTotal()}</p>
+                </div>
             </div>
 
             <div className="table-no-input">
-                <p>
-                    Table No.
-                </p>
+                <p>Table No.</p>
                 <input
                     type="text"
                     placeholder="Enter your table number"
