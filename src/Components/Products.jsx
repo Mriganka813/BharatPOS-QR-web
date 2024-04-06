@@ -34,7 +34,7 @@ const Products = () => {
 
                 const initialQuantities = {};
                 response.data.data.forEach(product => {
-                    initialQuantities[product._id] = 1; // Using product ID as unique cart item ID
+                    initialQuantities[product._id] = 1;
                 });
                 setQuantities(initialQuantities);
             } catch (error) {

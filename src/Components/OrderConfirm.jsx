@@ -16,7 +16,7 @@ const OrderConfirm = () => {
         <div className='center' style={{ height: '100dvh' }}>
             <Lottie
                 options={defaultOptions}
-                height={400} // Adjust the height and width as needed
+                height={400}
                 width={400}
             />
         </div>

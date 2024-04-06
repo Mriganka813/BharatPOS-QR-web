@@ -118,7 +118,7 @@ const Checkout = () => {
             </div>
 
             <div className="table-no-input">
-                <p>Table No.</p>
+                <p>Table Number</p>
                 <input
                     type="text"
                     placeholder="Enter your table number"
