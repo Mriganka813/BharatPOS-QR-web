@@ -1,10 +1,10 @@
 import React from 'react';
 import Lottie from 'react-lottie';
-import animationData from '../assets/load-animation.json';
+import animationData from '../assets/error-animation.json';
 
-const Loader = () => {
+const Error = () => {
     const defaultOptions = {
-        loop: true, // Set loop to false to play animation only once
+        loop: false, // Set loop to false to play animation only once
         autoplay: true,
         animationData: animationData,
         rendererSettings: {
@@ -13,14 +13,14 @@ const Loader = () => {
     };
 
     return (
-        <div className='center' style={{ height: '80dvh' }}>
+        <div className='center'style={{ height: '80dvh' }}>
             <Lottie
                 options={defaultOptions}
-                height={200}
-                width={200}
+                height={400}
+                width={400}
             />
         </div>
     );
 };
 
-export default Loader;
+export default Error;

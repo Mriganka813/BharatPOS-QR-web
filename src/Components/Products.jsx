@@ -2,9 +2,12 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/product.scss';
-import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
-import { MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight } from 'react-icons/md';
 import { FaCircleArrowRight } from "react-icons/fa6";
+import Error from './Error';
+import Loader from './Loader';
+import InfiniteScrollLoader from './InfiniteScrollLoader';
+import InfiniteScroll from "react-infinite-scroll-component";
+import { toast } from 'react-hot-toast';
 
 const Products = () => {
 
@@ -12,7 +15,6 @@ const Products = () => {
     const { id } = useParams();
     const [products, setProducts] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
     const [totalProducts, setTotalProducts] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -27,7 +29,6 @@ const Products = () => {
             try {
                 const response = await axios.get(`${baseURL}/api/v1/consumer/sellerProduct/${id}?page=${currentPage}`);
                 setProducts(response.data.data);
-                setTotalPages(response.data.total_pages);
                 setTotalProducts(response.data.total_products);
                 setShopName(response.data.sellerName);
                 setError(null);
@@ -45,19 +46,7 @@ const Products = () => {
             }
         };
         fetchData();
-    }, [id, currentPage]);
-
-    const handlePagination = (page) => {
-        setCurrentPage(page);
-    };
-
-    const goToFirstPage = () => {
-        setCurrentPage(1);
-    };
-
-    const goToLastPage = () => {
-        setCurrentPage(totalPages);
-    };
+    }, [id]);
 
     const addToCart = (product) => {
         const itemId = product._id; // Using product ID as unique cart item ID
@@ -100,7 +89,6 @@ const Products = () => {
         if (itemIndex !== -1) {
             updatedCart[itemIndex].quantity--;
             if (updatedCart[itemIndex].quantity <= 0) {
-                // If quantity becomes zero or negative, remove the item from the cart
                 updatedCart.splice(itemIndex, 1);
             }
             setCart(updatedCart);
@@ -114,56 +102,66 @@ const Products = () => {
         navigate('/checkout')
     };
 
+    const fetchMoreData = async () => {
+        try {
+            const nextPage = currentPage + 1;
+            const response = await axios.get(`${baseURL}/api/v1/consumer/sellerProduct/${id}?page=${nextPage}`);
+            setTotalProducts(response.data.total_products);
+            setProducts(prevProducts => [...prevProducts, ...response.data.data]);
+            setCurrentPage(nextPage);
+            setError(null);
+
+        } catch (error) {
+            toast.error('Error fetching more products:', error);
+            setError('Error fetching more products. Please try again later.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
     return (
         <div className="product-container" style={{ marginBottom: cart.length > 0 ? '60px' : '0px' }}>
             <h1>{shopName}</h1>
-            <h3>Our Menu</h3>
             {loading ? (
-                <div className="loader-main">
-                    <div className="spinner"></div>
-                </div>
+                <Loader />
             ) : error ? (
-                <div className="error">{error}</div>
+                <Error />
             ) : (
                 <>
-                    <div className="product-cards">
-                        {products.map((product) => (
-                            <div key={product._id} className="product-card">
-                                <div className="card-details center">
-                                    <h3>{product.name}</h3>
-                                    <p>₹{product.sellingPrice}</p>
+                    <InfiniteScroll
+                        dataLength={products.length}
+                        next={fetchMoreData}
+                        hasMore={products.length < totalProducts}
+                        loader={<InfiniteScrollLoader />}
+                    >
+                        <div className="product-cards">
+                            {products.map((product, index) => (
+                                <div key={product._id + index} className="product-card">
+                                    <div className="card-details center">
+                                        <h3>{product.name}</h3>
+                                        <p>₹{product.sellingPrice}</p>
+                                        {
+                                            product.description ? <span className="description-para">{product.description}</span> : <></>
+                                        }
+                                    </div>
+                                    <div className="prod-image center" style={{ backgroundColor: '#E0E1E4', backgroundImage: `url(${product.image})` }}>
+                                        {cart.some(item => item.id === product._id) ? (
+                                            <div className="add-to-cart center quantity-control">
+                                                <p className="quantity-btn center" onClick={() => decrementQuantity(product._id)}>-</p>
+                                                <span>{cart.find(item => item.id === product._id).quantity || 1}</span>
+                                                <p className="quantity-btn center" onClick={() => incrementQuantity(product._id)}>+</p>
+                                            </div>
+                                        ) : (
+                                            <div className="add-to-cart center">
+                                                <button onClick={() => addToCart(product)}>Add</button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="prod-image center" style={{ backgroundColor: '#E0E1E4', backgroundImage: `url(${product.image})` }}>
-                                    {cart.some(item => item.id === product._id) ? (
-                                        <div className="add-to-cart center quantity-control">
-                                            <p className="quantity-btn center" onClick={() => decrementQuantity(product._id)}>-</p>
-                                            <span>{cart.find(item => item.id === product._id).quantity || 1}</span>
-                                            <p className="quantity-btn center" onClick={() => incrementQuantity(product._id)}>+</p>
-                                        </div>
-                                    ) : (
-                                        <div className="add-to-cart center">
-                                            <button onClick={() => addToCart(product)}>Add</button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="pagination center">
-                        <button onClick={() => goToFirstPage()} disabled={currentPage === 1} className="center">
-                            <MdKeyboardDoubleArrowLeft />
-                        </button>
-                        <button onClick={() => handlePagination(currentPage - 1)} disabled={currentPage === 1} className="center">
-                            <IoIosArrowBack />
-                        </button>
-                        <span>{currentPage} of {totalPages}</span>
-                        <button onClick={() => handlePagination(currentPage + 1)} disabled={currentPage === totalPages} className="center">
-                            <IoIosArrowForward />
-                        </button>
-                        <button onClick={() => goToLastPage()} disabled={currentPage === totalPages} className="center">
-                            <MdKeyboardDoubleArrowRight />
-                        </button>
-                    </div>
+                            ))}
+                        </div>
+                    </InfiniteScroll>
                     {cart.length > 0 && (
                         <div className="proceed-container" onClick={proceedToCheckout}>
                             <p className='center'>{cart.length} {cart.length > 1 ? 'items' : 'item'} added <FaCircleArrowRight /></p>

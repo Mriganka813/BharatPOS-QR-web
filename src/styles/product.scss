@@ -6,17 +6,25 @@
     font-family: "Poppins", sans-serif;
 
     h1 {
-        padding: 30px;
+        padding: 30px 10px;
         padding-bottom: 0px;
-        font-size: 2rem;
+        font-size: 1.7rem;
         text-transform: uppercase;
         letter-spacing: 2px;
         font-weight: 650;
         text-align: center;
         margin: 20px;
-        background-image: linear-gradient(to right, #cb202d, #ff7e5f);
+        background-image: linear-gradient(to right, #252525, #cb202d, #252525, #cb202d);
+        // background-image: linear-gradient(to right, #252525,#252525 );
+        /* Updated gradient */
         -webkit-background-clip: text;
         color: transparent;
+        padding-top: 20px;
+    }
+
+    >h3 {
+        font-size: 1.5rem;
+        margin: 5px 0px 20px;
     }
 
     .product-cards {
@@ -61,6 +69,13 @@
                     @media screen and (max-width: 360px) {
                         font-size: 0.9rem;
                     }
+                }
+
+                >.description-para {
+                    margin-top: 10px;
+                    margin-right: 15px;
+                    font-size: 0.7rem;
+                    color: rgb(115, 115, 115);
                 }
             }
 
