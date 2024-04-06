@@ -45,6 +45,9 @@ const Checkout = () => {
         }
         setCart(updatedCart);
         localStorage.setItem('cart', JSON.stringify(updatedCart));
+        if (updatedCart.length === 0) {
+            navigate("/");
+        }
     };
 
     // Function to calculate the total price of items in the cart
