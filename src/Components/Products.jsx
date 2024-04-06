@@ -7,16 +7,19 @@ import { MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight } from 'react-ico
 import { FaCircleArrowRight } from "react-icons/fa6";
 
 const Products = () => {
-    const baseURL = "https://bharatpos-web-test.onrender.com"
+
+    const baseURL = import.meta.env.VITE_BASE_URL
     const { id } = useParams();
     const [products, setProducts] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [totalProducts, setTotalProducts] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [cart, setCart] = useState([]);
     const [quantities, setQuantities] = useState({});
     const navigate = useNavigate();
+    const [shopName, setShopName] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -25,6 +28,8 @@ const Products = () => {
                 const response = await axios.get(`${baseURL}/api/v1/consumer/sellerProduct/${id}?page=${currentPage}`);
                 setProducts(response.data.data);
                 setTotalPages(response.data.total_pages);
+                setTotalProducts(response.data.total_products);
+                setShopName(response.data.sellerName);
                 setError(null);
 
                 const initialQuantities = {};
@@ -105,12 +110,14 @@ const Products = () => {
     const proceedToCheckout = () => {
         console.log(cart);
         localStorage.setItem('cart', JSON.stringify(cart));
+        localStorage.setItem('phoneNumber', id);
         navigate('/checkout')
     };
 
     return (
         <div className="product-container" style={{ marginBottom: cart.length > 0 ? '60px' : '0px' }}>
-            <h1>Our Menu</h1>
+            <h1>{shopName}</h1>
+            <h3>Our Menu</h3>
             {loading ? (
                 <div className="loader-main">
                     <div className="spinner"></div>

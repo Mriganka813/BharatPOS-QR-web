@@ -1,19 +1,30 @@
 import { useEffect, useState } from 'react';
-import { MdOutlineShoppingCartCheckout } from "react-icons/md";
+import { FaArrowRightLong } from "react-icons/fa6";
 import '../styles/checkout.scss';
+import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom'
+import axios from 'axios';
 
 const Checkout = () => {
     const [cart, setCart] = useState([]);
     const [tableNumber, setTableNumber] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState();
 
     const handleChange = (event) => {
         setTableNumber(event.target.value);
     };
 
+    const navigate = useNavigate();
+
     useEffect(() => {
         const savedCart = JSON.parse(localStorage.getItem('cart'));
+        const savedPhone = JSON.parse(localStorage.getItem('phoneNumber'));
+        if (!savedCart || !savedPhone) {
+            navigate("/")
+        }
         if (savedCart) {
             setCart(savedCart);
+            setPhoneNumber(savedPhone);
         }
     }, []);
 
@@ -41,6 +52,40 @@ const Checkout = () => {
         return cart.reduce((total, item) => {
             return total + (item.price * item.quantity);
         }, 0);
+    };
+
+    const handleConfirm = () => {
+
+        if (!tableNumber) {
+            toast('Provide table number first', {
+                icon: '⚠️',
+            });
+            return;
+        }
+
+        // Define an async function that returns a promise
+        const confirmOrderPromise = () => {
+            return axios.post(`${import.meta.env.VITE_BASE_URL}/api/v1/qrOrder/new`, {
+                orderItems: cart,
+                tableNo: tableNumber,
+                phoneNumber: phoneNumber
+            }).then(response => response.data);
+        };
+
+        // Show toast using toast.promise
+        toast.promise(
+            confirmOrderPromise(),
+            {
+                loading: 'Confirming order...',
+                success: (data) => {
+                    navigate('/confirmation');
+                    localStorage.removeItem('cart');
+                    localStorage.removeItem('phoneNumber');
+                    return 'Order confirmed successfully!';
+                },
+                error: 'Failed to confirm order'
+            }
+        );
     };
 
     return (
@@ -82,9 +127,9 @@ const Checkout = () => {
                 />
             </div>
 
-            <div className="proceed-container">
+            <div className="proceed-container" onClick={handleConfirm}>
                 <p className='center'>
-                    Complete Order <MdOutlineShoppingCartCheckout />
+                    Confirm <FaArrowRightLong />
                 </p>
             </div>
 
