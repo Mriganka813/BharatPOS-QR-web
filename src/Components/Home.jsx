@@ -7,7 +7,7 @@ const Home = () => {
     const navigate = useNavigate();
 
     const handleClick = () => {
-        navigate('/products/64da35c9f2805549788a4fc6')
+        navigate('/products/1111121111')
     }
 
     return (
