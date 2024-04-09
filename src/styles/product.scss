@@ -6,21 +6,23 @@
     font-family: "Poppins", sans-serif;
 
     h1 {
-        padding: 30px 10px;
-        padding-bottom: 0px;
+        padding: 20px 10px 0px;
         font-size: 1.7rem;
         text-transform: uppercase;
         letter-spacing: 2px;
         font-weight: 650;
         text-align: center;
         margin: 20px;
+        margin-bottom: 5px;
         color: #252525;
-        padding-top: 20px;
     }
 
-    >h3 {
-        font-size: 1.5rem;
-        margin: 5px 0px 20px;
+    >p{
+        padding-bottom: 30px;
+        text-transform: uppercase;
+        color: #525252;
+        font-weight: 600;
+        text-align: center;
     }
 
     .product-cards {

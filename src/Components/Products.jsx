@@ -22,6 +22,7 @@ const Products = () => {
     const [quantities, setQuantities] = useState({});
     const navigate = useNavigate();
     const [shopName, setShopName] = useState("");
+    const [locality, setLocality] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -31,6 +32,7 @@ const Products = () => {
                 setProducts(response.data.data);
                 setTotalProducts(response.data.total_products);
                 setShopName(response.data.sellerName);
+                setLocality(response.data.shopLocality);
                 setError(null);
 
                 const initialQuantities = {};
@@ -123,6 +125,7 @@ const Products = () => {
     return (
         <div className="product-container" style={{ marginBottom: cart.length > 0 ? '60px' : '0px' }}>
             <h1>{shopName}</h1>
+            <p>{locality}</p>
             {loading ? (
                 <Loader />
             ) : error ? (
