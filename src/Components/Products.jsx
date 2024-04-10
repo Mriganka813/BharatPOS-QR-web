@@ -23,6 +23,9 @@ const Products = () => {
     const navigate = useNavigate();
     const [shopName, setShopName] = useState("");
     const [locality, setLocality] = useState("");
+    const [allCategories, setAllCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState("All");
+    const [fetchingNewData, setFetchingNewData] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -35,11 +38,8 @@ const Products = () => {
                 setLocality(response.data.shopLocality);
                 setError(null);
 
-                const initialQuantities = {};
-                response.data.data.forEach(product => {
-                    initialQuantities[product._id] = 1;
-                });
-                setQuantities(initialQuantities);
+                const allCatRes = await axios.get(`${baseURL}/api/v1/consumer/sellerProduct/categories/${id}`)
+                setAllCategories(allCatRes.data.categories);
             } catch (error) {
                 console.error('Error fetching products:', error);
                 setError('Error fetching products. Please try again later.');
@@ -49,6 +49,28 @@ const Products = () => {
         };
         fetchData();
     }, [id]);
+
+    const fetchProductsByCategory = async (category) => {
+        try {
+            setFetchingNewData(true);
+            let url = `${baseURL}/api/v1/consumer/sellerProduct/${id}?page=1`;
+            if (category !== "All") {
+                url += `&category=${category}`;
+            }
+            const response = await axios.get(url);
+            setProducts(response.data.data);
+            setTotalProducts(response.data.total_products);
+            setSelectedCategory(category);
+            setCurrentPage(1);
+            setError(null);
+        } catch (error) {
+            toast.error('Error fetching products by category:', error);
+            setError('Error fetching products by category. Please try again later.');
+        } finally {
+            setFetchingNewData(false);
+        }
+    };
+
 
     const addToCart = (product) => {
         const itemId = product._id; // Using product ID as unique cart item ID
@@ -98,22 +120,28 @@ const Products = () => {
     };
 
     const proceedToCheckout = () => {
-        console.log(cart);
         localStorage.setItem('cart', JSON.stringify(cart));
         localStorage.setItem('phoneNumber', id);
-        navigate('/checkout')
+        navigate('/checkout');
     };
 
     const fetchMoreData = async () => {
         try {
             const nextPage = currentPage + 1;
-            const response = await axios.get(`${baseURL}/api/v1/consumer/sellerProduct/${id}?page=${nextPage}`);
+            let response;
+            if (selectedCategory === "All") {
+                response = await axios.get(`${baseURL}/api/v1/consumer/sellerProduct/${id}?page=${nextPage}`)
+            }
+            else {
+                response = await axios.get(`${baseURL}/api/v1/consumer/sellerProduct/${id}?category=${selectedCategory}&page=${nextPage}`)
+            }
             setTotalProducts(response.data.total_products);
             setProducts(prevProducts => [...prevProducts, ...response.data.data]);
             setCurrentPage(nextPage);
             setError(null);
 
         } catch (error) {
+            console.log("Error: ", error)
             toast.error('Error fetching more products:', error);
             setError('Error fetching more products. Please try again later.');
         } finally {
@@ -126,12 +154,24 @@ const Products = () => {
         <div className="product-container" style={{ marginBottom: cart.length > 0 ? '60px' : '0px' }}>
             <h1>{shopName}</h1>
             <p>{locality}</p>
-            {loading ? (
+            {loading || fetchingNewData ? (
                 <Loader />
             ) : error ? (
                 <Error />
             ) : (
                 <>
+                    <div className="categories-container">
+                        <ul className='allCategories'>
+                            <li onClick={() => fetchProductsByCategory("All")} className={selectedCategory === "All" ? 'selected-cat' : ''}>
+                                All
+                            </li>
+                            {allCategories.map((category, index) => (
+                                <li key={index} onClick={() => fetchProductsByCategory(category)} className={selectedCategory === category ? 'selected-cat' : ''}>
+                                    {category}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                     <InfiniteScroll
                         dataLength={products.length}
                         next={fetchMoreData}
@@ -144,9 +184,9 @@ const Products = () => {
                                     <div className="card-details center">
                                         <h3>{product.name}</h3>
                                         <p>₹{product.sellingPrice}</p>
-                                        {
-                                            product.description ? <span className="description-para">{product.description}</span> : <></>
-                                        }
+                                        {product.description && (
+                                            <span className="description-para">{product.description}</span>
+                                        )}
                                     </div>
                                     <div className="prod-image center" style={{ backgroundColor: '#E0E1E4', backgroundImage: `url(${product.image})` }}>
                                         {cart.some(item => item.id === product._id) ? (
