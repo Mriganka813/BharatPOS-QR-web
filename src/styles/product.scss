@@ -49,6 +49,7 @@ body {
                 padding: 8px 10px;
                 font-size: 0.8rem;
                 cursor: pointer;
+                text-wrap: nowrap
             }
 
             > .selected-cat {
@@ -197,7 +198,7 @@ body {
 
     .proceed-container {
         position: fixed;
-        bottom: 0;
+        top: 91.5%;
         left: 0;
         z-index: 999;
         width: 100%;

@@ -55,7 +55,8 @@ const Products = () => {
             setFetchingNewData(true);
             let url = `${baseURL}/api/v1/consumer/sellerProduct/${id}?page=1`;
             if (category !== "All") {
-                url += `&category=${category}`;
+                const encodedCategory = encodeURIComponent(category);
+                url += `&category=${encodedCategory}`;
             }
             const response = await axios.get(url);
             setProducts(response.data.data);
@@ -131,15 +132,14 @@ const Products = () => {
             let response;
             if (selectedCategory === "All") {
                 response = await axios.get(`${baseURL}/api/v1/consumer/sellerProduct/${id}?page=${nextPage}`)
-            }
-            else {
-                response = await axios.get(`${baseURL}/api/v1/consumer/sellerProduct/${id}?category=${selectedCategory}&page=${nextPage}`)
+            } else {
+                const encodedCategory = encodeURIComponent(selectedCategory); // Encode category name
+                response = await axios.get(`${baseURL}/api/v1/consumer/sellerProduct/${id}?category=${encodedCategory}&page=${nextPage}`)
             }
             setTotalProducts(response.data.total_products);
             setProducts(prevProducts => [...prevProducts, ...response.data.data]);
             setCurrentPage(nextPage);
             setError(null);
-
         } catch (error) {
             console.log("Error: ", error)
             toast.error('Error fetching more products:', error);
@@ -179,39 +179,43 @@ const Products = () => {
                         loader={<InfiniteScrollLoader />}
                     >
                         <div className="product-cards">
-                            {products.map((product, index) => (
-                                <div key={product._id + index} className="product-card">
-                                    <div className="card-details center">
-                                        <h3>{product.name}</h3>
-                                        <p>₹{product.sellingPrice}</p>
-                                        {product.description && (
-                                            <span className="description-para">{product.description}</span>
-                                        )}
+                            {products
+                                .filter(product => product.available)
+                                .map((product, index) => (
+                                    <div key={product._id + index} className="product-card">
+                                        <div className="card-details center">
+                                            <h3>{product.name}</h3>
+                                            <p>₹{product.sellingPrice}</p>
+                                            {product.description && (
+                                                <span className="description-para">{product.description}</span>
+                                            )}
+                                        </div>
+                                        <div className="prod-image center" style={{ backgroundColor: '#E0E1E4', backgroundImage: `url(${product.image})` }}>
+                                            {cart.some(item => item.id === product._id) ? (
+                                                <div className="add-to-cart center quantity-control">
+                                                    <p className="quantity-btn center" onClick={() => decrementQuantity(product._id)}>-</p>
+                                                    <span>{cart.find(item => item.id === product._id).quantity || 1}</span>
+                                                    <p className="quantity-btn center" onClick={() => incrementQuantity(product._id)}>+</p>
+                                                </div>
+                                            ) : (
+                                                <div className="add-to-cart center">
+                                                    <button onClick={() => addToCart(product)}>Add</button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="prod-image center" style={{ backgroundColor: '#E0E1E4', backgroundImage: `url(${product.image})` }}>
-                                        {cart.some(item => item.id === product._id) ? (
-                                            <div className="add-to-cart center quantity-control">
-                                                <p className="quantity-btn center" onClick={() => decrementQuantity(product._id)}>-</p>
-                                                <span>{cart.find(item => item.id === product._id).quantity || 1}</span>
-                                                <p className="quantity-btn center" onClick={() => incrementQuantity(product._id)}>+</p>
-                                            </div>
-                                        ) : (
-                                            <div className="add-to-cart center">
-                                                <button onClick={() => addToCart(product)}>Add</button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
+                                ))}
                         </div>
                     </InfiniteScroll>
-                    {cart.length > 0 && (
-                        <div className="proceed-container" onClick={proceedToCheckout}>
-                            <p className='center'>{cart.length} {cart.length > 1 ? 'items' : 'item'} added <FaCircleArrowRight /></p>
-                        </div>
-                    )}
+
                 </>
             )}
+            {cart.length > 0 && (
+                <div className="proceed-container" onClick={proceedToCheckout}>
+                    <p className='center'>{cart.length} {cart.length > 1 ? 'items' : 'item'} added <FaCircleArrowRight /></p>
+                </div>
+            )}
+
         </div>
     );
 };
