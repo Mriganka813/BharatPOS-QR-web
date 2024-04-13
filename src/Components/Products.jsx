@@ -41,7 +41,7 @@ const Products = () => {
                 const allCatRes = await axios.get(`${baseURL}/api/v1/consumer/sellerProduct/categories/${id}`)
                 setAllCategories(allCatRes.data.categories);
             } catch (error) {
-                console.error('Error fetching products:', error);
+                toast.error('Error fetching products:', error);
                 setError('Error fetching products. Please try again later.');
             } finally {
                 setLoading(false);
@@ -86,16 +86,17 @@ const Products = () => {
             const itemDetails = {
                 id: itemId,
                 price: product.sellingPrice,
-                quantity: 1, // Default quantity is 1 when adding to cart
+                quantity: 1,
                 product: product,
-                saleCGST: product.saleCGST,
-                saleSGST: product.saleSGST,
-                saleIGST: product.saleIGST,
-                baseSellingPrice: product.baseSellingPrice,
-                discountAmt: product.discountAmt,
-                originalbaseSellingPrice: product.originalbaseSellingPrice
+                saleCGST: product.GSTincluded ? product.saleCGST : 0,
+                saleSGST: product.GSTincluded ? product.saleSGST : 0,
+                saleIGST: product.GSTincluded ? product.saleIGST : 0,
+                baseSellingPrice: product.GSTincluded ? product.baseSellingPrice : 0,
+                discountAmt: 0,
+                originalbaseSellingPrice: product.GSTincluded ? product.baseSellingPrice : 0
             };
             setCart([...cart, itemDetails]);
+            // console.log(cart)
         }
     };
 

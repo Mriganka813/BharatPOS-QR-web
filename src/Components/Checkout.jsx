@@ -68,6 +68,13 @@ const Checkout = () => {
 
         // Define an async function that returns a promise
         const confirmOrderPromise = () => {
+
+            // console.log({
+            //     orderItems: cart,
+            //     tableNo: tableNumber,
+            //     phoneNumber: phoneNumber
+            // })
+
             return axios.post(`${import.meta.env.VITE_BASE_URL}/api/v1/qrOrder/new`, {
                 orderItems: cart,
                 tableNo: tableNumber,
