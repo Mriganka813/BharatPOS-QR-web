@@ -74,40 +74,48 @@ const Products = () => {
 
 
     const addToCart = (product) => {
-        const itemId = product._id; // Using product ID as unique cart item ID
+        const itemId = product._id;
         const itemIndex = cart.findIndex(item => item.id === itemId);
-        if (itemIndex !== -1) {
-            // If item already exists in the cart, just update its quantity
-            const updatedCart = [...cart];
-            updatedCart[itemIndex].quantity++;
-            setCart(updatedCart);
+        if (product.quantity > 0) {
+            if (itemIndex !== -1) {
+                const updatedCart = [...cart];
+                updatedCart[itemIndex].quantity++;
+                setCart(updatedCart);
+            } else {
+                const itemDetails = {
+                    id: itemId,
+                    price: product.sellingPrice,
+                    quantity: 1,
+                    product: product,
+                    saleCGST: product.GSTincluded ? product.saleCGST : 0,
+                    saleSGST: product.GSTincluded ? product.saleSGST : 0,
+                    saleIGST: product.GSTincluded ? product.saleIGST : 0,
+                    baseSellingPrice: product.GSTincluded ? product.baseSellingPrice : 0,
+                    discountAmt: 0,
+                    originalbaseSellingPrice: product.GSTincluded ? product.baseSellingPrice : 0
+                };
+                setCart([...cart, itemDetails]);
+            }
         } else {
-            // If item doesn't exist, add it to the cart
-            const itemDetails = {
-                id: itemId,
-                price: product.sellingPrice,
-                quantity: 1,
-                product: product,
-                saleCGST: product.GSTincluded ? product.saleCGST : 0,
-                saleSGST: product.GSTincluded ? product.saleSGST : 0,
-                saleIGST: product.GSTincluded ? product.saleIGST : 0,
-                baseSellingPrice: product.GSTincluded ? product.baseSellingPrice : 0,
-                discountAmt: 0,
-                originalbaseSellingPrice: product.GSTincluded ? product.baseSellingPrice : 0
-            };
-            setCart([...cart, itemDetails]);
-            // console.log(cart)
+            toast.error('Not in stock');
         }
     };
+
 
     const incrementQuantity = (itemId) => {
         const updatedCart = [...cart];
         const itemIndex = updatedCart.findIndex(item => item.id === itemId);
         if (itemIndex !== -1) {
-            updatedCart[itemIndex].quantity++;
-            setCart(updatedCart);
+            const product = updatedCart[itemIndex].product;
+            if (updatedCart[itemIndex].quantity < product.quantity) {
+                updatedCart[itemIndex].quantity++;
+                setCart(updatedCart);
+            } else {
+                toast.error('Limited Stock');
+            }
         }
     };
+
 
     const decrementQuantity = (itemId) => {
         const updatedCart = [...cart];

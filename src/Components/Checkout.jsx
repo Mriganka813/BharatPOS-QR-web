@@ -30,10 +30,16 @@ const Checkout = () => {
 
     const increaseQuantity = (index) => {
         const updatedCart = [...cart];
-        updatedCart[index].quantity++;
-        setCart(updatedCart);
-        localStorage.setItem('cart', JSON.stringify(updatedCart));
+        const product = updatedCart[index].product;
+        if (updatedCart[index].quantity < product.quantity) {
+            updatedCart[index].quantity++;
+            setCart(updatedCart);
+            localStorage.setItem('cart', JSON.stringify(updatedCart));
+        } else {
+            toast.error('Limited Stock');
+        }
     };
+
 
     const decreaseQuantity = (index) => {
         const updatedCart = [...cart];
